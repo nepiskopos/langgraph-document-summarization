@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "agent": "./src/summarizer.py:graph"
+  },
+  "env": ".env"
+}
