@@ -68,12 +68,12 @@ def get_reduce_chain():
 
     return reduce_chain
 
-def get_logger(name: str="anonymizer-map-reduce") -> logging.Logger:
+def get_logger(name: str="summarizer-map-reduce") -> logging.Logger:
     """
     Get a logger with the specified name. If no handlers are set, it will create a default StreamHandler.
 
     Args:
-        name (str): The name of the logger. Defaults to "anonymizer-map-reduce".
+        name (str): The name of the logger. Defaults to "summarizer-map-reduce".
 
     Returns:
         logging.Logger: The configured logger instance.

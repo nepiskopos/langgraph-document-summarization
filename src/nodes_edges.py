@@ -12,11 +12,11 @@ from src.utils import split_list_of_docs_async, chunk_document, get_logger, get_
 logger = get_logger()
 
 
-# First, add debug output to _map_input to track files found
 async def _map_input(state: InputState) -> LoadState:
     """Map input files to load_document state."""
     sends = []
 
+    # Send each file in the input state to the load_document state in parallel
     for file in state.get('files', []):
         sends.append(
             Send("load_document", {
@@ -30,24 +30,23 @@ async def _load_document(state: LoadState) -> OverallState:
     """Load a document from the provided file information dictionary."""
     results = []
 
-    file = state.get('file', {})
-
-    # Add better error handling and debugging
     try:
-        if file and isinstance(file, dict) and "file" in file:
-            file_data = file["file"]
-            logger.debug(f"Loading document with ID {file_data.get('id', '')}")
+        file = state.get('file', {})
 
-            if 'data' in file_data and 'content' in file_data['data']:
+        if file and isinstance(file, dict) and "file" in file:
+            file_info = file["file"]
+            logger.debug(f"Loading document with ID {file_info.get('id', '')}")
+
+            if file_info.get('data', {}).get('content', ''):
                 results.append(OIFile(
-                    id=file_data['id'],
-                    name=file_data['filename'],
-                    type=file_data['meta']['content_type'],
-                    content=file_data['data']['content']
+                    id=file_info['id'],
+                    name=file_info['filename'],
+                    type=file_info['meta']['content_type'],
+                    content=file_info['data']['content']
                 ))
                 logger.debug(f"✓ Successfully loaded document: {results[0]}")
             else:
-                logger.error(f"✕ ERROR: Missing data or content of document with ID {file_data.get('id', '')}")
+                logger.error(f"✕ ERROR: Missing data or content of document with ID {file_info.get('id', '')}")
         else:
             logger.warning(f"⚠ WARNING: Invalid document format received: {type(file)}")
     except Exception as e:
@@ -140,7 +139,7 @@ async def _group_partial_summaries(state: OverallState) -> OverallState:
 
     logger.debug(f"✓ Successfully grouped {len(results_by_doc)} partial summaries by document ID")
 
-    return {"file_partial_summaries": results_by_doc}
+    return {"document_partial_summaries": results_by_doc}
 
 async def _should_collapse(state: OverallState) -> Literal["collapse_summaries", "generate_final_summary"]:
     """Decide whether to collapse summaries or generate final summary."""
@@ -149,7 +148,7 @@ async def _should_collapse(state: OverallState) -> Literal["collapse_summaries",
     # Create mapping of documents by ID for easier lookup
     doc_map = {doc.get_id(): doc for doc in state.get("documents", [])}
 
-    for fid, partial_summaries in state.get('file_partial_summaries', {}).items():
+    for fid, partial_summaries in state.get('document_partial_summaries', {}).items():
         if fid in doc_map:
             if not doc_map[fid].get_summary():
                 # Use async version - add await here
@@ -198,7 +197,7 @@ async def _collapse_summaries(state: CollapseState) -> OverallState:
 
             logger.debug(f"✓ Successfully collapsed summaries for document ID: {file_id}")
 
-    return {"file_partial_summaries": results}
+    return {"document_partial_summaries": results}
 
 async def _generate_final_summary(state: ReduceSummaryState) -> OutputState:
     """Generate the final summary for a document."""

@@ -1,5 +1,5 @@
 from langchain_core.documents import Document
-from typing import Annotated, Dict, List, Tuple, TypedDict
+from typing import Annotated, Any, Dict, List, Tuple, TypedDict
 import operator
 
 from src.oifile import OIFile
@@ -15,7 +15,7 @@ class OverallState(TypedDict):
     document_chunks: Annotated[Dict[str, Tuple[str]], operator.or_]
     document_ids: Annotated[List[str], operator.add]
     partial_summaries: Annotated[List[str], operator.add]
-    file_partial_summaries: Annotated[Dict[str, List[Document]], operator.or_]
+    document_partial_summaries: Annotated[Dict[str, List[Document]], operator.or_]
 
 class OutputState(TypedDict):
     """State for the output node that contains the final documents, including their summaries."""
@@ -24,7 +24,7 @@ class OutputState(TypedDict):
 
 class LoadState(TypedDict):
     """State for the load node that contains a file to be loaded as an IOFile object."""
-    file: Dict
+    file: Dict[str, Any]
 
 class SplitState(TypedDict):
     """State for the split node that contains an IOFile object whose content will be split into chunks."""
